@@ -4,6 +4,38 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import axios from 'axios'
 
+const useMousePointer = () => {
+  const [position, setPosition] = useState({x: 0, y: 0});
+
+  const handleMouseMove = (e) => {
+    setPosition({x: e.clientX, y: e.clientY});
+  };
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+    };
+  }, [])
+
+  return position
+}
+
+function useIsOnline() {
+  const [isOnline, setIsOnline] = useState(window.navigator.onLine)
+
+  useEffect(() => {
+    window.addEventListener("online", () => {
+      setIsOnline(true);
+    })
+    window.addEventListener("offline", () => {
+      setIsOnline(false);
+    })
+  }, [])
+
+  return isOnline;
+}
+
 function useTodos(n) {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +65,8 @@ function useTodos(n) {
 
 function App() {
   const [todos, loading] = useTodos(5);
+  const online = useIsOnline();
+  const mousePointer = useMousePointer()
 
   if (loading) {
     return (
@@ -42,11 +76,26 @@ function App() {
 
   return (
     <>
-      {todos.map(todo => <Track todo={todo}/>)}
+      <div>
+        {todos.map(todo => <Track todo={todo}/>)}
+      </div>
+      <OnlineCard online = {online}></OnlineCard>
+      <MousePositionCard mousePointer={mousePointer}></MousePositionCard>
     </>
   )
 }
 
+function MousePositionCard ({mousePointer}) {
+  return <div>
+    Your mouse position is {mousePointer.x}, {mousePointer.y}
+  </div>
+}
+
+function OnlineCard ({ online }){
+  return <div>
+    { online ? "You're Online" : "You are offline"}
+  </div>
+}
 function Track({ todo }){
   return <div>
     {todo.title}
